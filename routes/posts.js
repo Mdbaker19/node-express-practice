@@ -3,9 +3,6 @@ const Post = require('../model/Post');
 
 const router = express.Router();
 
-const words = ['hats', 'apples', 'dogs', 'animals', 'table'];
-const body = ['a lot of them', 'very loud ones', 'it is for sale', 'do not mess with it', 'it looks like you'];
-
 router.get('/api', (req, res) => {
     Post.find({ })
         .then((data) => {
@@ -16,6 +13,16 @@ router.get('/api', (req, res) => {
             console.log("error", error);
         })
 });
+
+router.get('/post/:id', async (req, res) => {
+    try {
+        console.log("getting one by id");
+        const post = await Post.findById(req.params.id);
+        res.json(post);
+    } catch (err) {
+        res.json(err);
+    }
+})
 
 // router.post('/new', async (req, res) => {
 //    const post = new Post({
@@ -30,9 +37,5 @@ router.get('/api', (req, res) => {
 //    }
 // });
 
-
-function random(){
-    return ~~(Math.random() * 5);
-}
 
 module.exports = router;

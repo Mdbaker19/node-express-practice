@@ -4,9 +4,18 @@ const mongoose = require('mongoose');
 const path = require('path');
 require('dotenv/config');
 const Post = require('./model/Post');
-
-app.get('/', (req, res) => {
+const bodyParser = require("body-parser");
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({extended : false}));
+app.get('/', async (req, res) => {
+    try{
+        const posts = await Post.find();
+        // res.json(posts);
+    } catch (err) {
+        res.json(err);
+    }
     res.sendFile(path.join(__dirname + '/index.html'));
+    // res.render('index');
 });
 
 
@@ -19,6 +28,8 @@ app.get('/api', (req, res) => {
         .then((data) => {
             // console.log("data", data);
             res.json(data);
+            // document.getElementById("info").innerText = data;
+            res.sendFile(path.join(__dirname + '/data.html'));
         })
         .catch( (error) => {
             console.log("error", error);
@@ -35,14 +46,19 @@ app.listen(3000)
 
 
 
-
-const words = ['hats', 'apples', 'dogs', 'animals', 'table'];
-const body = ['a lot of them', 'very loud ones', 'it is for sale', 'do not mess with it', 'it looks like you'];
-
 app.post('/new', async (req, res) => {
+
+    let titleLen = req.body.title.length;
+    let descLen = req.body.desc.length;
+
+    if(titleLen < 1 || descLen < 1) {
+        res.redirect("/");
+        return;
+    }
+
     const post = new Post({
-        title: words[random()],
-        body: body[random()]
+        title: req.body.title,
+        body: req.body.desc
     });
     try{
         const savePost = await post.save();
@@ -50,9 +66,24 @@ app.post('/new', async (req, res) => {
     } catch (err){
         res.json({message: err})
     }
-    // await res.redirect("/api");
+    await res.redirect("/api");
 });
 
-function random(){
-    return ~~(Math.random() * 5);
-}
+
+app.get('/post/:id', async (req, res) => {
+    try {
+        const post = await Post.findById(req.params.id);
+        res.json(post);
+    } catch (err) {
+        res.json(err);
+    }
+})
+
+app.delete('/post/:id', async (req, res) => {
+    try {
+        const removed = await Post.remove({_id : req.params.id})
+        res.json("post with id " +req.params.id+ " was deleted");
+    } catch (err) {
+        res.json(err);
+    }
+})
